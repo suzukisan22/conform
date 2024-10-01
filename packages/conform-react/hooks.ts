@@ -74,13 +74,11 @@ export function useForm<
 	);
 
 	useSafeLayoutEffect(() => {
-		const disconnect = context.observe();
 		document.addEventListener('input', context.onInput);
 		document.addEventListener('focusout', context.onBlur);
 		document.addEventListener('reset', context.onReset);
 
 		return () => {
-			disconnect();
 			document.removeEventListener('input', context.onInput);
 			document.removeEventListener('focusout', context.onBlur);
 			document.removeEventListener('reset', context.onReset);
@@ -91,10 +89,24 @@ export function useForm<
 		context.onUpdate({ ...formConfig, formId });
 	});
 
-	const subjectRef = useSubjectRef();
+	const subjectRef = useSubjectRef({
+		key: {
+			// Subscribe to all key changes so it will re-render and
+			// update the field value as soon as the DOM is updated
+			prefix: [''],
+		},
+	});
 	const stateSnapshot = useFormState(context, subjectRef);
 	const noValidate = useNoValidate(options.defaultNoValidate);
 	const form = getFormMetadata(context, subjectRef, stateSnapshot, noValidate);
+
+	useEffect(() => {
+		const disconnect = context.observe(stateSnapshot);
+
+		return () => {
+			disconnect();
+		};
+	}, [context, stateSnapshot]);
 
 	return [form, form.getFieldset()];
 }
