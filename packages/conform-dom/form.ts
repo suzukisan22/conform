@@ -238,7 +238,8 @@ export type FormContext<
 	onInput(event: Event): void;
 	onBlur(event: Event): void;
 	onUpdate(options: Partial<FormOptions<Schema, FormError, FormValue>>): void;
-	observe(stateSnapshot: FormState<FormError>): () => void;
+	updateFormElement(state: FormState<FormError>): void;
+	observe(): () => void;
 	subscribe(
 		callback: () => void,
 		getSubject?: () => SubscriptionSubject | undefined,
@@ -1119,7 +1120,7 @@ export function createFormContext<
 		}
 	}
 
-	function observe(stateSnapshot: FormState<FormError>) {
+	function observe() {
 		const observer = new MutationObserver((mutations) => {
 			const form = getFormElement();
 
@@ -1155,7 +1156,6 @@ export function createFormContext<
 			attributes: true,
 			attributeFilter: ['form', 'name'],
 		});
-		updateFormElement(stateSnapshot);
 
 		return () => {
 			observer.disconnect();
@@ -1177,6 +1177,7 @@ export function createFormContext<
 		insert: createFormControl('insert'),
 		remove: createFormControl('remove'),
 		reorder: createFormControl('reorder'),
+		updateFormElement,
 		subscribe,
 		getState,
 		getSerializedState,
